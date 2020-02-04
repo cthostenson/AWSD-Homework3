@@ -1,5 +1,6 @@
 ﻿@using Modas.Models
-@model IEnumerable<Event>
+@using Modas.Models.ViewModels
+@model EventListViewModel
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,22 +8,96 @@
     <title>MODAS</title>
     <link href="~/css/all.min.css" rel="stylesheet" />
     <link href="~/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/css/client.css" rel="stylesheet" />
+    <style>
+        #start, #flagged {
+            visibility: hidden;
+        }
+
+        .flag {
+            cursor: pointer;
+            transition: text-shadow 0.3s ease-in-out;
+        }
+
+        .flag:hover {
+            text-shadow: 20px 20px 3px #000,
+                 -20px 20px 3px #000,
+                20px -20px 3px #000,
+                -20px -20px 3px #000;
+        }
+
+    </style>
 </head>
 <body>
-    <table class="container table table-bordered">
-        <tr><th>Date</th><th>Time</th><th>Location</th></tr>
-        @foreach (var e in Model)
-        {
-            <tr>
-                <td>@String.Format("{0: ddd, MMM dd, yyyy}", e.TimeStamp)</td>
-                <td>@String.Format("{0:hh:mm tt}", e.TimeStamp)</td>
-                <td>@e.Location.Name</td>
-            </tr>
-        }
-    </table>
+    <div class="jumbotron">
+        <table class="container table table-bordered">
+            <tr><th>Flagged</th><th>Date</th><th>Time</th><th>Location</th></tr>
+            @foreach (var e in Model.Events)
+            {
+        <tr>
+            <td>
+                <span id="flagged"></span>
+                @if (e.Flagged == true)
+                {
+                    <i id="flag" class="flag fas fa-flag"></i>
+                }
+                else {
+                    <i id="flag" class="flag far fa-flag"></i>
+                }
+
+            </td>
+            <td>@String.Format("{0: ddd, MMM dd, yyyy}", e.TimeStamp)</td>
+            <td>@String.Format("{0:hh:mm tt}", e.TimeStamp)</td>
+            <td>@e.Location.Name</td>
+        </tr>
+            }
+        </table>
+
+        <div class="row mb-3">
+            <div class="col">
+                <button disabled id="first" class="btn btn-outline-primary" type="button" data-page="1"><i class="fas fa-angle-double-left"></i><span class="d-none d-md-inline"> First</span></button>
+                <button disabled id="prev" class="btn btn-outline-primary" type="button" data-page="@(Model.PagingInfo.PreviousPage)"><i class="fas fa-angle-left"></i><span class="d-none d-md-inline"> Prev</span></button>
+            </div>
+            <div class="col text-center text-secondary">
+                <span id="start">@(Model.PagingInfo.RangeStart)-</span><span id="end">@(Model.PagingInfo.RangeEnd)</span>
+                -
+                <span id="total">@(Model.PagingInfo.TotalItems)</span>
+            </div>
+            <div class="col text-right">
+                <button disabled id="next" class="btn btn-outline-primary" type="button" data-page="@(Model.PagingInfo.NextPage)"><span class="d-none d-md-inline">Next </span><i class="fas fa-angle-right"></i></button>
+                <button disabled id="last" class="btn btn-outline-primary" type="button" data-page="@(Model.PagingInfo.TotalPages)"><span class="d-none d-md-inline">Last </span><i class="fas fa-angle-double-right"></i></button>
+            </div>
+        </div>
+
+    </div>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
             integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
             crossorigin="anonymous"></script>
     <script src="~/js/bootstrap.min.js"></script>
+    <script>
+        $(function () {
+            initButtons();
+            $('#next, #prev, #first, #last').on('click', function () {
+                location.href = "page" + $(this).data('page');
+            });
+            function initButtons() {
+                $('#first, #prev').prop('disabled', $('#start').html() == "1");
+                $('#last, #next').prop('disabled', $('#end').html() == $('#total').html());
+                $('.flag').click(changeFlag);
+            }
+
+            function changeFlag() {
+                if ($(this).hasClass('fas fa-flag') == true) {
+                    $(this).removeClass('fas fa-flag');
+                    $(this).addClass('far fa-flag');
+                }
+                else {
+                    $(this).removeClass('far fa-flag');
+                    $(this).addClass('fas fa-flag');
+                }
+            }
+
+        });
+    </script>
 </body>
 </html>
